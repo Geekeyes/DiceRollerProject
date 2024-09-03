@@ -1,46 +1,26 @@
-from flask import Flask, request, jsonify
-import d20
-import openai
-import os
+import requests
 
-app = Flask(__name__)
-
-# Set your OpenAI API key from an environment variable
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
-# Define the root route
-@app.route http://127.0.0.1:5000/
-def home():
-    return "Welcome to the D&D Dice Roller!"
-
-# Define the roll route
-@app.route http://127.0.0.1:5000/roll methods=['POST']
-def roll_dice_api():
-    data = request.get_json()
-    expression = data.get('expression')
-
-    roll_result = roll_dice(expression)
-    gpt_response = chat_with_gpt(f"The player rolled {expression} with the result: {roll_result}. Provide some narrative.")
-
-    return jsonify({
-        "roll_result": roll_result,
-        "gpt_response": gpt_response
-    })
-
+# Function to roll dice by sending a request to the Flask API
 def roll_dice(expression):
+    url = "http://127.0.0.1:5000/roll"
+    headers = {"Content-Type": "application/json"}
+    data = {"expression": expression}
+    
     try:
-        result = d20.roll(expression)
-        return f"Roll: {result}\nTotal: {result.total}\nDetailed Rolls: {result.result}"
-    except d20.errors.RollSyntaxError as e:
-        return f"Syntax Error: {e}"
+        response = requests.post(url, json=data, headers=headers)
+        response.raise_for_status()  # Raises an HTTPError for bad responses
+        result = response.json()
+        return result
+    except requests.exceptions.RequestException as e:
+        print(f"Error: {str(e)}")
+        return None
 
-def chat_with_gpt(prompt):
-    response = openai.Completion.create(
-        engine="gpt-3.5-turbo",  # Use "gpt-4" if you have access
-        prompt=prompt,
-        max_tokens=150
-    )
-    return response.choices[0].text.strip()
+# Example dice rolls
+expressions = ["1d20+5", "2d6", "3d10+2", "4d8", "1d100"]
 
-if __name__ == '__main__':
-    app.run(debug=True)
+for expr in expressions:
+    result = roll_dice(expr)
+    if result:
+        print(f"Expression: {expr}")
+        print(f"Roll Result: {result['roll_result']}")
+        print(f"GPT Response: {result['gpt_response']}\n")
