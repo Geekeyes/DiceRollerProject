@@ -9,12 +9,12 @@ app = Flask(__name__)
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Define the root route
-@app.route http://127.0.0.1:5000/)
+@app.route('/')
 def home():
     return "Welcome to the D&D Dice Roller!"
 
 # Define the roll route
-@app.route http://127.0.0.1:5000/roll', methods=['POST'])
+@app.route('/roll', methods=['POST'])
 def roll_dice_api():
     data = request.get_json()
     expression = data.get('expression')
@@ -42,5 +42,5 @@ def chat_with_gpt(prompt):
     )
     return response.choices[0].text.strip()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
